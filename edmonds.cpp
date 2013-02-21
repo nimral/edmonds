@@ -156,6 +156,13 @@ int edmonds(graf& G, int vel_parovani)
                         hladina[v] = -2;
                         hladina[w] = -2;
 
+                        //budeme kopírovat graf a vypouštět vrcholy
+                        int nove_cislo[G.V.size()];
+                        for (int i = 0; i < G.V.size(); i++) {
+                            nove_cislo[i] = -1;
+                        }
+
+
                         for (pulhrana *f = pulhrana_k_rodici[v]; f != NULL;
                         f = pulhrana_k_rodici[f->druha.odkud->cislo]) {
                             hladina[f->druha.odkud->cislo] = -2;
@@ -200,23 +207,39 @@ int edmonds(graf& G, int vel_parovani)
                         vrchol *kvet = new vrchol;
                         G2.V.push_back(kvet);
 
+                        vrchol *nove[G.V.size()];
                         bool spojeny_s_kvetem[G.V.size()];
+                        for (int i = 0; i < G.V.size(); i++) {
+                            nove[i] = new vrchol;
+                            spojeny_s_kvetem[i] = false;
+                        }
 
                         for (int v = 0; v < G.V.size(); v++) {
                             if (hladina[v] != -3) {
-                                G2.V.push_back(G.V[v]);
-                            }
-                            for (list<pulhrana>::iterator it = G.V[v]->hrany.begin(); it != G.V[v]->hrany.end(); ++it) {
-                                if (hladina[v] != -3) {
-                                    if (hladina[it->druha.odkud] == -3) {
+                                nove[v]->cislo = G2.V.size();
+                                G2.V.push_back(nove[v]);
+                                for (list<pulhrana>::iterator it = G.V[v]->hrany.begin(); it != G.V[v]->hrany.end(); ++it) {
+                                    if (hladina[it->druha.odkud->cislo] == -3) {
                                         if (!spojeny_s_kvetem[v]) {
-                                            
-
-
-
-
-
-                                
+                                            pulhrana p1 = pulhrana(nove[it->druha.odkud->cislo]);
+                                            pulhrana p2 = pulhrana(nove[v]);
+                                            p1.druha = &p2;
+                                            p2.druha = &p1;
+                                            nove[v]->hrany.push_back(p1);
+                                            nove[0]->hrany.push_back(p2);
+                                            spojeny_s_kvetem[v] = true;
+                                        }
+                                    } else {
+                                            pulhrana p1 = pulhrana(nove[it->druha.odkud->cislo]);
+                                            pulhrana p2 = pulhrana(nove[v]);
+                                            p1.druha = &p2;
+                                            p2.druha = &p1;
+                                            nove[v]->hrany.push_back(p1);
+                                            nove[it->druha.odkud->cislo]->hrany.push_back(p2);
+                                        }
+                                    }
+                                }
+                            }
 
                         
 
@@ -225,7 +248,13 @@ int edmonds(graf& G, int vel_parovani)
 
 
 
-                        
+
+
+
+
+
+
+
 
                 }
 
