@@ -178,12 +178,14 @@ int edmonds(graf& G, int vel_parovani)
                         }
                         
                         //označíme vrcholy za květnaté
-                        hladina[v] = -3;
-                        hladina[w] = -3;
+                        //hladina[v] = -3;
+                        //hladina[w] = -3;
+                        nove_cislo[v] = nove_cislo[w] = 0;
 
                         pulhrana *f = pulhrana_k_rodici[v];
                         while (true) {
-                            hladina[f->druha.odkud->cislo] = -3;
+                            //hladina[f->druha.odkud->cislo] = -3;
+                            nove_cislo[f->druha.odkud->cislo] = 0;
                             if (f->druha.odkud == u) {
                                 break;
                             }
@@ -192,54 +194,82 @@ int edmonds(graf& G, int vel_parovani)
 
                         *f = pulhrana_k_rodici[w];
                         while (true) {
-                            hladina[f->druha.odkud->cislo] = -3;
+                            //hladina[f->druha.odkud->cislo] = -3;
+                            nove_cislo[f->druha.odkud->cislo] = 0;
                             if (f->druha.odkud == u) {
                                 break;
                             }
                             f = pulhrana_k_rodici[f->druha.odkud->cislo];
                         }
 
+                        //spočítáme nová čísla
+                        int pocet = 1;
+                        for (int i = 0; i < G.V.size(); i++) {
+                            if (nove_cislo[i] != 0) {
+                                nove_cislo[i] = pocet;
+                                pocet++;
+                            }
+                        }
+                            
+
 
                         //vybudujeme graf s kontrahovaným květem
                         
                         graf G2;
 
-                        vrchol *kvet = new vrchol;
-                        G2.V.push_back(kvet);
-
-                        vrchol *nove[G.V.size()];
-                        bool spojeny_s_kvetem[G.V.size()];
-                        for (int i = 0; i < G.V.size(); i++) {
-                            nove[i] = new vrchol;
-                            spojeny_s_kvetem[i] = false;
+                        for (int i = 0; i < pocet; i++) {
+                            G2.V.push_back(new vrchol);
                         }
 
                         for (int v = 0; v < G.V.size(); v++) {
-                            if (hladina[v] != -3) {
-                                nove[v]->cislo = G2.V.size();
-                                G2.V.push_back(nove[v]);
-                                for (list<pulhrana>::iterator it = G.V[v]->hrany.begin(); it != G.V[v]->hrany.end(); ++it) {
-                                    if (hladina[it->druha.odkud->cislo] == -3) {
-                                        if (!spojeny_s_kvetem[v]) {
-                                            pulhrana p1 = pulhrana(nove[it->druha.odkud->cislo]);
-                                            pulhrana p2 = pulhrana(nove[v]);
-                                            p1.druha = &p2;
-                                            p2.druha = &p1;
-                                            nove[v]->hrany.push_back(p1);
-                                            nove[0]->hrany.push_back(p2);
-                                            spojeny_s_kvetem[v] = true;
-                                        }
-                                    } else {
-                                            pulhrana p1 = pulhrana(nove[it->druha.odkud->cislo]);
-                                            pulhrana p2 = pulhrana(nove[v]);
-                                            p1.druha = &p2;
-                                            p2.druha = &p1;
-                                            nove[v]->hrany.push_back(p1);
-                                            nove[it->druha.odkud->cislo]->hrany.push_back(p2);
-                                        }
-                                    }
-                                }
-                            }
+                            for (list<pulhrana>::iterator it = G.V[v]->hrany.begin(); it != G.V[v]->hrany.end(); ++it) {
+                                int w = it->druha.odkud->cislo;
+                                if ((nove_cislo[v] != 0 || nove_cislo[w] != 0) && (v < w)) {
+                                    G2.V[nove_cislo[v]]->hrany.push_back(
+            pulhrana *p1 = new pulhrana(G2.V[nove_cislo[v]]);
+            pulhrana *p2 = new pulhrana(G2.V[nove_cislo[w]]);
+            p1->druha = p2;
+            p2->druha = p1;
+            p1->parovaci = false;
+            p2->parovaci = false;
+
+
+        G.V[v]->hrany.push_back(p1);
+        G.V[w]->hrany.push_back(p2);
+
+                        //vrchol *nove[G.V.size()];
+                        //bool spojeny_s_kvetem[G.V.size()];
+                        //for (int i = 0; i < G.V.size(); i++) {
+                            //nove[i] = new vrchol;
+                            //spojeny_s_kvetem[i] = false;
+                        //}
+
+                        //for (int v = 0; v < G.V.size(); v++) {
+                            //if (hladina[v] != -3) {
+                                //nove[v]->cislo = G2.V.size();
+                                //G2.V.push_back(nove[v]);
+                                //for (list<pulhrana>::iterator it = G.V[v]->hrany.begin(); it != G.V[v]->hrany.end(); ++it) {
+                                    //if (hladina[it->druha.odkud->cislo] == -3) {
+                                        //if (!spojeny_s_kvetem[v]) {
+                                            //pulhrana p1 = pulhrana(nove[it->druha.odkud->cislo]);
+                                            //pulhrana p2 = pulhrana(nove[v]);
+                                            //p1.druha = &p2;
+                                            //p2.druha = &p1;
+                                            //nove[v]->hrany.push_back(p1);
+                                            //nove[0]->hrany.push_back(p2);
+                                            //spojeny_s_kvetem[v] = true;
+                                        //}
+                                    //} else {
+                                            //pulhrana p1 = pulhrana(nove[it->druha.odkud->cislo]);
+                                            //pulhrana p2 = pulhrana(nove[v]);
+                                            //p1.druha = &p2;
+                                            //p2.druha = &p1;
+                                            //nove[v]->hrany.push_back(p1);
+                                            //nove[it->druha.odkud->cislo]->hrany.push_back(p2);
+                                        //}
+                                    //}
+                                //}
+                            //}
 
                         
 
