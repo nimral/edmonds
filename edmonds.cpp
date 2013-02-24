@@ -1,9 +1,12 @@
 #include <cstdio>
+#include <deque>
 #include <vector>
 
 #define even(x) (((x) % 2) == 0)
 
 using namespace std;
+
+class pulhrana;
 
 class vrchol
 {
@@ -12,14 +15,7 @@ public:
     int cislo;
     bool volny();
     ~vrchol();
-}
-
-~vrchol()
-{
-    for (int i = 0; i < hrany.size(); i++) {
-        delete hrany[i];
-    }
-}
+};
 
 class pulhrana
 {
@@ -27,8 +23,16 @@ public:
     pulhrana *druha;
     vrchol *odkud_;
     int odkud();
-    int kam;
+    int kam();
     bool parovaci;
+};
+
+
+vrchol::~vrchol()
+{
+    for (int i = 0; i < hrany.size(); i++) {
+        delete hrany[i];
+    }
 }
 
 int pulhrana::odkud()
@@ -44,8 +48,9 @@ int pulhrana::kam()
 class graf
 {
 public:
-    vector<vrchol*> V;
+    vector<vrchol> V;
     void nacti_graf();
+    void vypis_parovani();
     ~graf();
 };
 
@@ -55,7 +60,7 @@ void graf::nacti_graf()
     int n,m;
     scanf("%d %d",&n,&m);
     for (int i = 0; i < n; i++) {
-        V.push_back(new vrchol());
+        V.push_back(vrchol());
         V.back().cislo = i;
     }
 
@@ -63,8 +68,10 @@ void graf::nacti_graf()
         int v,w;
         scanf("%d %d",&v,&w);
 
-        pulhrana *p1 = new pulhrana(V[v]);
-        pulhrana *p2 = new pulhrana(V[w]);
+        pulhrana *p1 = new pulhrana;
+        pulhrana *p2 = new pulhrana;
+        p1->odkud_ = &V[v];
+        p2->odkud_ = &V[w];
         p1->druha = p2;
         p2->druha = p1;
         p1->parovaci = false;
@@ -90,13 +97,13 @@ void graf::vypis_parovani()
     }
 }
 
-~graf()
+graf::~graf()
 {
     for (int i = 0; i < V.size(); i++) {
-        for (int j = 0; j < V[i].hrany[j]; j++) {
+        for (int j = 0; j < V[i].hrany.size(); j++) {
             delete V[i].hrany[j];
         }
-        delete V[i];
+        //delete V[i];
     }
 }
 
@@ -118,7 +125,7 @@ bool vrchol::volny()
 bool edmonds(graf& G)
 {
     //konstruujeme Edmondsův les procházením do šířky
-    deque fronta;
+    deque<int> fronta;
     int hladina[G.V.size()];
     int koren[G.V.size()];
     pulhrana *pulhrana_k_rodici[G.V.size()];
@@ -142,8 +149,8 @@ bool edmonds(graf& G)
         fronta.pop_front();
 
         //for (vector<pulhrana*>::iterator it = G.V[v].hrany.begin(); it != G.V[v].hrany.end(); ++it) {
-        for (int h = 0; h < G.V[v].hrany.size(); h++) {
-            pulhrana proch_hrana = G.V[v].hrany[h];
+        for (int h = 0; h < G.V[proch_v].hrany.size(); h++) {
+            pulhrana *proch_hrana = G.V[proch_v].hrany[h];
             int proch_w = proch_hrana->kam();
             
             if (even(hladina[proch_v])) {
@@ -224,7 +231,7 @@ bool edmonds(graf& G)
                             f = pulhrana_k_rodici[f->kam()];
                         }
 
-                        *f = pulhrana_k_rodici[proch_w];
+                        f = pulhrana_k_rodici[proch_w];
                         while (true) {
                             nove_cislo[f->kam()] = 0;
                             if (f->kam() == u) {
@@ -249,12 +256,12 @@ bool edmonds(graf& G)
                         graf G2;
 
                         for (int i = 0; i < pocet; i++) {
-                            G2.V.push_back(new vrchol);
+                            G2.V.push_back(vrchol());
                             G2.V.back().cislo = i;
                         }
 
                         //odkazy na odpovídající hrany v novém grafu
-                        vector<vector<pulhrana*> odpovidajici;
+                        vector<vector<pulhrana*> > odpovidajici;
                         for (int i = 0; i < G.V.size(); i++) {
                             for (int j = 0; j < G.V[i].hrany.size(); j++) {
                                 odpovidajici[i].push_back(NULL);
@@ -271,8 +278,10 @@ bool edmonds(graf& G)
                                 //pokud hrana má aspoň jeden konec mimo květ, okopírujeme ji
                                 //(ale jen jednou, pokud v < w)
                                 if ((nove_cislo[v] != 0 || nove_cislo[w] != 0) && (v < w)) {
-                                    pulhrana *p1 = new pulhrana(G2.V[nove_cislo[v]]);
-                                    pulhrana *p2 = new pulhrana(G2.V[nove_cislo[w]]);
+                                    pulhrana *p1 = new pulhrana;
+                                    pulhrana *p2 = new pulhrana;
+                                    p1->odkud_ = &G2.V[nove_cislo[v]];
+                                    p2->odkud_ = &G2.V[nove_cislo[w]];
                                     p1->druha = p2;
                                     p2->druha = p1;
                                     p1->parovaci = p2->parovaci = G.V[v].hrany[j]->parovaci;
@@ -350,9 +359,9 @@ bool edmonds(graf& G)
                                 } else {
                                     nasleduje_parovaci = false;
                                 }
-                                for (pulhrana *f = pulhrana_k_rodici[proch_v]; f->odkud.cislo != u; f = pulhrana_k_rodici[f->kam()]) {
+                                for (pulhrana *f = pulhrana_k_rodici[proch_v]; f->odkud() != u; f = pulhrana_k_rodici[f->kam()]) {
                                     f->parovaci = f->druha->parovaci = nasleduje_parovaci;
-                                    if (f->druha->odkud.cislo != hledany) {
+                                    if (f->druha->odkud() != hledany) {
                                         nasleduje_parovaci = !nasleduje_parovaci;
                                     }
                                 }
@@ -363,18 +372,18 @@ bool edmonds(graf& G)
                                 } else {
                                     nasleduje_parovaci = false;
                                 }
-                                for (pulhrana *f = pulhrana_k_rodici[k2]; f->odkud.cislo != u; f = pulhrana_k_rodici[f->kam()]) {
+                                for (pulhrana *f = pulhrana_k_rodici[k2]; f->odkud() != u; f = pulhrana_k_rodici[f->kam()]) {
                                     f->parovaci = f->druha->parovaci = nasleduje_parovaci;
-                                    if (f->druha->odkud.cislo != hledany) {
+                                    if (f->druha->odkud() != hledany) {
                                         nasleduje_parovaci = !nasleduje_parovaci;
                                     }
                                 }
 
                                 //zbývá upravit hranu mezi proch_v a proch_w
                                 if (hledany == proch_v || hledany == proch_w) {
-                                    it->parovaci = it->druha->parovaci = false;
+                                    proch_hrana->parovaci = proch_hrana->druha->parovaci = false;
                                 } else {
-                                    it->parovaci = it->druha->parovaci = !even(vzd);
+                                    proch_hrana->parovaci = proch_hrana->druha->parovaci = !even(vzd);
                                 }
                             }
                                     
