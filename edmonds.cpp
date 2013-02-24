@@ -172,6 +172,9 @@ int edmonds(graf& G)
                         hladina[v] = -2;
                         hladina[w] = -2;
 
+                        int k1 = v;
+                        int k2 = w;
+
                         for (pulhrana *f = pulhrana_k_rodici[v]; f != NULL;
                         f = pulhrana_k_rodici[f->druha.odkud->cislo]) {
                             hladina[f->druha.odkud->cislo] = -2;
@@ -283,18 +286,88 @@ int edmonds(graf& G)
                                         }
                                     }
                                 }
-                                return true;
-                            } else {
-                                
+                            } else { //květ není volný, musíme na něm upravit párování
 
+                                int hledany = -1; //vrchol v květu, do kterého vedou dvě spárované hrany
+                                vector<bool> sparovany(G.V.size(),false);
+                                for (int v = 0; v < G.V.size(); v++) {
 
+                                    for (int i = 0; i < G.V[v]->hrany.size(); i++) {
+                                        //každou hranu potkáme z jedné strany
+                                        if (odpovidajici[v][i] != NULL) {
+                                            G.V[v]->hrany[i].parovaci = G.V[v]->hrany[i]->druha.parovaci = odpovidajici[v][i].parovaci;
+                                        }
+                                        if (G.V[v]->hrany[i].parovaci) {
+                                            if (sparovany[v]) {
+                                                hledany = v;
+                                            } else {
+                                                sparovany[v] = true;
+                                            }
+                                            if (sparovany[G.V[v]->hrany[i]->druha.odkud]) {
+                                                hledany = G.V[v]->hrany[i]->druha.odkud;
+                                            } else {
+                                                sparovany[G.V[v]->hrany[i]->druha.odkud] = true;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                int vzd = 0; //počet hran na květu od k1 do hledany
+                                int i;
+                                for (i = k1; i != hledany && i != u; i = pulhrana_k_rodici[i]->druha.odkud->cislo) {
+                                    vzd++;
+                                }
+                                bool nasleduje_parovaci; //párovací a nepárovací hrany se musejí střídat
+                                if (i != hledany) {
+                                    vzd = 0;
+                                    for (i = k2; i != hledany && i != u; i = pulhrana_k_rodici[i]->druha.odkud->cislo) {
+                                        vzd++;
+                                    }
+                                }
+
+                                //upravíme část květu, která odpovídá části cesty z k1 do kořene
+                                if (hledany != k1) {
+                                    nasleduje_parovaci = even(vzd);
+                                } else {
+                                    nasleduje_parovaci = false;
+                                }
+                                for (pulhrana *f = pulhrana_k_rodici[k1]; f->odkud.cislo != u; f = pulhrana_k_rodici[f->druha.odkud->cislo]) {
+                                    f->parovaci = f->druha->parovaci = nasleduje_parovaci;
+                                    if (f->druha->odkud.cislo != hledany) {
+                                        nasleduje_parovaci = !nasleduje_parovaci;
+                                    }
+                                }
+
+                                //upravíme část květu, která odpovídá části cesty z k2 do kořene
+                                if (hledany != k2) {
+                                    nasleduje_parovaci = even(vzd);
+                                } else {
+                                    nasleduje_parovaci = false;
+                                }
+                                for (pulhrana *f = pulhrana_k_rodici[k2]; f->odkud.cislo != u; f = pulhrana_k_rodici[f->druha.odkud->cislo]) {
+                                    f->parovaci = f->druha->parovaci = nasleduje_parovaci;
+                                    if (f->druha->odkud.cislo != hledany) {
+                                        nasleduje_parovaci = !nasleduje_parovaci;
+                                    }
+                                }
+
+                                //zbývá upravit hranu mezi k1 a k2
+                                if (hledany == k1 || hledany == k2) {
+                                    it->parovaci = it->druha->parovaci = false;
+                                } else {
+                                    it->parovaci = it->druha->parovaci = !even(vzd);
+                                }
+                            }
+                                    
+                            return true;
                         }
                     }
                 }
             }
-            if (hladina[w]
         }
     }
+    //neexistuje hrana mezi sudými hladinami Edmondsova lesa, tedy neexistuje
+    //volná střídavá cesta a párování je maximální
     return false;
 }
 
