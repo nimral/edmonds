@@ -65,8 +65,8 @@ void graf::nacti_graf()
     }
 
     for (int i = 0; i < m; i++) {
-        int v,w;
-        scanf("%d %d",&v,&w);
+        int v,w,s_parovanim;
+        scanf("%d %d",&v,&w,&s_parovanim);
 
         pulhrana *p1 = new pulhrana;
         pulhrana *p2 = new pulhrana;
@@ -76,6 +76,12 @@ void graf::nacti_graf()
         p2->druha = p1;
         p1->parovaci = false;
         p2->parovaci = false;
+
+        if (s_parovanim) {
+            int p;
+            scanf("%d",&p);
+            p1->parovaci = p2->parovaci = p;
+        }
 
         V[v].hrany.push_back(p1);
         V[w].hrany.push_back(p2);
