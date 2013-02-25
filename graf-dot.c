@@ -1,5 +1,17 @@
 #include <stdio.h>
 
+/*
+ * formát vstupu:
+ * na prvním řádku tři celá nezáporná čísla n, m, s_parovanim
+ * ~ počet vrcholů, počet hran, je grafu nějaké párování?
+ * následuje m řádků ve formátu v, w [parovaci (pokud je graf
+ * s_parovanim)]
+ *
+ * formát výstupu:
+ * dot language
+ *
+ */
+
 int main()
 {
     int n,m,s_parovanim;
@@ -16,7 +28,7 @@ int main()
             int parovaci;
             scanf("%d",&parovaci);
             if (parovaci) {
-                printf("[penwidth=2.0]");
+                printf("[color=red,penwidth=3.0]");
             }
         }
 

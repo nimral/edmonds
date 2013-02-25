@@ -51,22 +51,23 @@ public:
     vector<vrchol> V;
     void nacti_graf();
     void vypis_parovani();
+    void vypis_graf();
     ~graf();
 };
 
 
 void graf::nacti_graf()
 {
-    int n,m;
-    scanf("%d %d",&n,&m);
+    int n,m,s_parovanim;
+    scanf("%d %d %d",&n,&m,&s_parovanim);
     for (int i = 0; i < n; i++) {
         V.push_back(vrchol());
         V.back().cislo = i;
     }
 
     for (int i = 0; i < m; i++) {
-        int v,w,s_parovanim;
-        scanf("%d %d",&v,&w,&s_parovanim);
+        int v,w,p;
+        scanf("%d %d",&v,&w);
 
         pulhrana *p1 = new pulhrana;
         pulhrana *p2 = new pulhrana;
@@ -85,6 +86,27 @@ void graf::nacti_graf()
 
         V[v].hrany.push_back(p1);
         V[w].hrany.push_back(p2);
+        //printf("parovaci: %d\n",V[v].hrany.back()->parovaci);
+    }
+}
+
+void graf::vypis_graf()
+{
+    int hran = 0;
+    for (int v = 0; v < V.size(); v++) {
+        hran += V[v].hrany.size();
+    }
+    hran /= 2;
+    printf("%d %d 1\n",V.size(),hran);
+
+    for (int v = 0; v < V.size(); v++) {
+        for (int h = 0; h < V[v].hrany.size(); h++) {
+            int o = V[v].hrany[h]->odkud();
+            int k = V[v].hrany[h]->kam();
+            if (o < k) {
+                printf("%d %d %d\n",o,k,V[v].hrany[h]->parovaci ? 1 : 0);
+            }
+        }
     }
 }
 
@@ -139,6 +161,7 @@ bool edmonds(graf& G)
     //v nulté hladině jsou všechny volné vrcholy
     for (int i = 0; i < G.V.size(); i++) {
         if (G.V[i].volny()) {
+            fprintf(stderr,"volny: %d\n",i);
             fronta.push_back(i);
             hladina[i] = 0;
             koren[i] = i;
@@ -160,6 +183,7 @@ bool edmonds(graf& G)
             int proch_w = proch_hrana->kam();
             
             if (even(hladina[proch_v])) {
+
                 //nenavštívený vrchol, přidáme jej do stromu na lichou hladinu
                 if (koren[proch_w] == -1) {
                     if (!proch_hrana->parovaci) {
@@ -173,6 +197,7 @@ bool edmonds(graf& G)
                         //hrana vede mezi sudými hladinami různých stromů
                         //musí být nepárovací
                         //našli jsme augmenting path
+                        fprintf(stderr,"našli jsme augmenting path\n");
 
                         //zalternujeme ji
                         proch_hrana->parovaci = true;
@@ -409,9 +434,11 @@ int main()
 {
     graf G;
     G.nacti_graf();
+    //G.vypis_graf();
+    //printf("\n");
 
     while (edmonds(G))
         ;
 
-    G.vypis_parovani();
+    G.vypis_graf();
 }
