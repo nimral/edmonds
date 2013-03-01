@@ -196,8 +196,8 @@ bool edmonds(graf& G)
 
                 } else { //navštívený vrchol
 
-                    //pokud hrana vede mezi sudými/lichými hladinami různých stromů
-                    if (koren[proch_w] != koren[proch_v] && even(hladina[proch_w]) == even(hladina[proch_v])) {
+                    //pokud hrana vede mezi sudými hladinami různých stromů
+                    if (koren[proch_w] != koren[proch_v] && even(hladina[proch_w]) && even(hladina[proch_v])) {
                         //našli jsme augmenting path
                         fprintf(stderr,"našli jsme augmenting path\n");
 
@@ -286,14 +286,20 @@ bool edmonds(graf& G)
                         
                         graf G2;
 
+                        bool uz_hrana[pocet]; //už z daného vrcholu vede v G2 hrana do květu?
+
                         for (int i = 0; i < pocet; i++) {
                             G2.V.push_back(vrchol());
                             G2.V.back().cislo = i;
+
+                            uz_hrana[i] = false;
                         }
+                        uz_hrana[0] = true;
 
                         //odkazy na odpovídající hrany v novém grafu
                         vector<vector<pulhrana*> > odpovidajici;
                         for (int i = 0; i < G.V.size(); i++) {
+                            odpovidajici.push_back(vector<pulhrana*>());
                             for (int j = 0; j < G.V[i].hrany.size(); j++) {
                                 odpovidajici[i].push_back(NULL);
                             }
@@ -306,9 +312,9 @@ bool edmonds(graf& G)
                                 pulhrana *jhrana = G.V[v].hrany[j];
                                 int w = jhrana->kam();
 
-                                //pokud hrana má aspoň jeden konec mimo květ, okopírujeme ji
-                                //(ale jen jednou, pokud v < w)
-                                if ((nove_cislo[v] != 0 || nove_cislo[w] != 0) && (v < w)) {
+                                //pokud má hrana jeden vrchol v květu, druhý mimo květ a nevede z něj ještě v G2 hrana do květu, okopírujeme ji
+                                //pokud jsou oba vrcholy mimo květ, okopírujeme hranu jen když na ni narazíme poprvé (v < w)
+                                if ((nove_cislo[v] != 0) && ((nove_cislo[w] == 0 && !uz_hrana[v]) || (nove_cislo[w] != 0 && (v < w)))) {
                                     pulhrana *p1 = new pulhrana;
                                     pulhrana *p2 = new pulhrana;
                                     p1->odkud_ = &G2.V[nove_cislo[v]];
@@ -322,6 +328,8 @@ bool edmonds(graf& G)
 
                                     //odpovídající hranu uložíme jen pro jednu stranu, ale to nevadí, vždycky se podíváme na obě dvě
                                     odpovidajici[v][j] = p1;
+
+                                    uz_hrana[v] = uz_hrana[w] = true;
                                 }
                             }
                         }
