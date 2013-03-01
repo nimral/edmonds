@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <deque>
 #include <vector>
+#include <cstdlib>
 
 #define even(x) (((x) % 2) == 0)
 
@@ -180,22 +181,23 @@ bool edmonds(graf& G)
         //for (vector<pulhrana*>::iterator it = G.V[v].hrany.begin(); it != G.V[v].hrany.end(); ++it) {
         for (int h = 0; h < G.V[proch_v].hrany.size(); h++) {
             pulhrana *proch_hrana = G.V[proch_v].hrany[h];
-            int proch_w = proch_hrana->kam();
-            
-            if (even(hladina[proch_v])) {
 
-                //nenavštívený vrchol, přidáme jej do stromu na lichou hladinu
+            //v Edmondsově lese se pravidelně střídají párovací a nepárovací hrany
+            if (even(hladina[proch_v]) != proch_hrana->parovaci) {
+                int proch_w = proch_hrana->kam();
+                
+                //nenavštívený vrchol, přidáme jej do stromu
                 if (koren[proch_w] == -1) {
-                    if (!proch_hrana->parovaci) {
-                        koren[proch_w] = koren[proch_v];
-                        hladina[proch_w] = hladina[proch_v]+1;
-                        pulhrana_k_rodici[proch_w] = proch_hrana->druha;
-                        fronta.push_back(proch_w);
-                    }
+
+                    koren[proch_w] = koren[proch_v];
+                    hladina[proch_w] = hladina[proch_v]+1;
+                    pulhrana_k_rodici[proch_w] = proch_hrana->druha;
+                    fronta.push_back(proch_w);
+
                 } else { //navštívený vrchol
-                    if (koren[proch_w] != koren[proch_v] && even(hladina[proch_w])) {
-                        //hrana vede mezi sudými hladinami různých stromů
-                        //musí být nepárovací
+
+                    //pokud hrana vede mezi sudými/lichými hladinami různých stromů
+                    if (koren[proch_w] != koren[proch_v] && even(hladina[proch_w]) == even(hladina[proch_v])) {
                         //našli jsme augmenting path
                         fprintf(stderr,"našli jsme augmenting path\n");
 
@@ -205,18 +207,18 @@ bool edmonds(graf& G)
 
                         for (pulhrana *f = pulhrana_k_rodici[proch_v]; f != NULL; f = pulhrana_k_rodici[f->kam()]) {
                             f->parovaci = !f->parovaci;
-                            f->druha->parovaci = !f->parovaci;
+                            f->druha->parovaci = !f->druha->parovaci;
                         }
 
                         for (pulhrana *f = pulhrana_k_rodici[proch_w]; f != NULL; f = pulhrana_k_rodici[f->kam()]) {
                             f->parovaci = !f->parovaci;
-                            f->druha->parovaci = !f->parovaci;
+                            f->druha->parovaci = !f->druha->parovaci;
                         }
 
                         //zvětšili jsme párování
                         return true;
 
-                    } else if (koren[proch_w] == koren[proch_v] && even(hladina[proch_w])) {
+                    } else if (koren[proch_w] == koren[proch_v]) { // && even(hladina[proch_w])) && even(hladina[proch_v])
                         //našli jsme květ
 
                         //najdeme začátek stonku:
@@ -225,17 +227,14 @@ bool edmonds(graf& G)
                         hladina[proch_v] = -2;
                         hladina[proch_w] = -2;
 
-                        int k1 = proch_v;
-                        int k2 = proch_w;
-
                         for (pulhrana *f = pulhrana_k_rodici[proch_v]; f != NULL; f = pulhrana_k_rodici[f->kam()]) {
                             hladina[f->kam()] = -2;
                         }
 
-                        int u; //začátek stonku
+                        int zac_stonku; //začátek stonku
                         for (pulhrana *f = pulhrana_k_rodici[proch_w]; f != NULL; f = pulhrana_k_rodici[f->kam()]) {
                             if (hladina[f->kam()] == -2) {
-                                u = f->kam();
+                                zac_stonku = f->kam();
                                 break;
                             }
                         }
@@ -253,10 +252,11 @@ bool edmonds(graf& G)
                         //květ bude v novém grafu na pozici 0
                         nove_cislo[proch_v] = nove_cislo[proch_w] = 0;
 
+                        //označíme si vrcholy ve květu
                         pulhrana *f = pulhrana_k_rodici[proch_v];
                         while (true) {
                             nove_cislo[f->kam()] = 0;
-                            if (f->kam() == u) {
+                            if (f->kam() == zac_stonku) {
                                 break;
                             }
                             f = pulhrana_k_rodici[f->kam()];
@@ -265,7 +265,7 @@ bool edmonds(graf& G)
                         f = pulhrana_k_rodici[proch_w];
                         while (true) {
                             nove_cislo[f->kam()] = 0;
-                            if (f->kam() == u) {
+                            if (f->kam() == zac_stonku) {
                                 break;
                             }
                             f = pulhrana_k_rodici[f->kam()];
@@ -374,7 +374,7 @@ bool edmonds(graf& G)
                                 int vzd = 0; //počet hran na květu od proch_v do hledany
                                 int i;
                                 bool nasleduje_parovaci; //párovací a nepárovací hrany se musejí střídat
-                                for (i = proch_v; i != hledany && i != u; i = pulhrana_k_rodici[i]->kam()) {
+                                for (i = proch_v; i != hledany && i != zac_stonku; i = pulhrana_k_rodici[i]->kam()) {
                                     vzd++;
                                 }
                                 if (i != hledany) {
@@ -390,7 +390,7 @@ bool edmonds(graf& G)
                                 } else {
                                     nasleduje_parovaci = false;
                                 }
-                                for (pulhrana *f = pulhrana_k_rodici[proch_v]; f->odkud() != u; f = pulhrana_k_rodici[f->kam()]) {
+                                for (pulhrana *f = pulhrana_k_rodici[proch_v]; f->odkud() != zac_stonku; f = pulhrana_k_rodici[f->kam()]) {
                                     f->parovaci = f->druha->parovaci = nasleduje_parovaci;
                                     if (f->druha->odkud() != hledany) {
                                         nasleduje_parovaci = !nasleduje_parovaci;
@@ -403,7 +403,7 @@ bool edmonds(graf& G)
                                 } else {
                                     nasleduje_parovaci = false;
                                 }
-                                for (pulhrana *f = pulhrana_k_rodici[k2]; f->odkud() != u; f = pulhrana_k_rodici[f->kam()]) {
+                                for (pulhrana *f = pulhrana_k_rodici[proch_w]; f->odkud() != zac_stonku; f = pulhrana_k_rodici[f->kam()]) {
                                     f->parovaci = f->druha->parovaci = nasleduje_parovaci;
                                     if (f->druha->odkud() != hledany) {
                                         nasleduje_parovaci = !nasleduje_parovaci;
