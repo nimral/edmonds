@@ -3,6 +3,7 @@
 #include <vector>
 #include <cstdlib>
 #include <iomanip>
+#include <ctime>
 
 #include <sstream>
 
@@ -55,9 +56,9 @@ class graf
 public:
     vector<vrchol> V;
     void nacti_graf();
+    void vygeneruj(int n, int h);
     void vypis_parovani();
     void vypis_graf(FILE *out);
-    //~graf();
 };
 
 
@@ -94,6 +95,33 @@ void graf::nacti_graf()
         //printf("parovaci: %d\n",V[v].hrany.back()->parovaci);
     }
 }
+
+void graf::vygeneruj(int n, int h)
+{
+    for (int i = 0; i < n; i++) {
+        V.push_back(vrchol());
+        V.back().cislo = i;
+    }
+
+    for (int v = 0; v < n; v++) {
+        for (int w = v+1; w < n; w++) {
+            if (rand() % 100 < h) {
+                pulhrana *p1 = new pulhrana;
+                pulhrana *p2 = new pulhrana;
+                p1->odkud_ = &V[v];
+                p2->odkud_ = &V[w];
+                p1->druha = p2;
+                p2->druha = p1;
+                p1->parovaci = false;
+                p2->parovaci = false;
+
+                V[v].hrany.push_back(p1);
+                V[w].hrany.push_back(p2);
+            }
+        }
+    }
+}
+ 
 
 void graf::vypis_graf(FILE *out = stdout)
 {
@@ -248,7 +276,7 @@ bool edmonds(graf& G)
                             //zvětšili jsme párování
                             return true;
 
-                        } else if (koren[proch_w] == koren[proch_v]) { // && even(hladina[proch_w])) && even(hladina[proch_v])
+                        } else if (koren[proch_w] == koren[proch_v] && even(hladina[proch_w]) && even(hladina[proch_v])) {
                             //našli jsme květ
                             fprintf(stderr,"našli jsme květ\n");
 
@@ -374,13 +402,15 @@ bool edmonds(graf& G)
                                         }
                                     }
                                     //pokud je alespoň jedna hrana z v do květu párovací, bude párovací i hrana z v do květu v G2
-                                    if (jhrana->parovaci && pulhrana_do_kvetu[nove_cislo[v]] != NULL) {
+                                    if (jhrana->parovaci && pulhrana_do_kvetu[nove_cislo[v]] != NULL && w == 0) {
                                         pulhrana_do_kvetu[nove_cislo[v]]->parovaci = pulhrana_do_kvetu[nove_cislo[v]]->druha->parovaci = true;
                                         odpovidajici[nove_cislo[v]][do_kvetu] = jhrana;
                                         odpovidajici[nove_cislo[v]][z_kvetu] = jhrana->druha;
                                     }
                                 }
                             }
+
+                            vypis(G2);
 
                             //pokud algoritmus spuštěný na G2 nenajde větší párování, je vstupní párování maximální
                             if (!edmonds(G2)) {
@@ -527,6 +557,12 @@ int main()
 {
     graf G;
     G.nacti_graf();
+
+    //srand(time(NULL));
+    //G.vygeneruj(120,5);
+    
+    //vypis(G);
+
     //G.vypis_graf();
     //printf("\n");
 
