@@ -19,6 +19,10 @@ int main()
     
     printf("graph {\n");
 
+    for (int i = 0; i < n; i++) {
+        printf("%d;\n",i);
+    }
+
     for (int i = 0; i < m; i++) {
         int v,w;
         scanf("%d %d",&v,&w);
