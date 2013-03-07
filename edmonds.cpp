@@ -559,7 +559,7 @@ int main()
     G.nacti_graf();
 
     //srand(time(NULL));
-    //G.vygeneruj(120,5);
+    //G.vygeneruj(15,20);
     
     //vypis(G);
 
