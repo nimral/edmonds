@@ -1,0 +1,50 @@
+\documentclass[a4]{article}
+\usepackage[czech]{babel}
+%\usepackage{a4wide}
+%\usepackage[top=2.9cm, bottom=2.9cm, left=3cm, right=3cm]{geometry}
+\usepackage[utf8]{inputenc} % pro unicode UTF-8
+\usepackage[T1]{fontenc} % vyhledávání funguje!
+\usepackage{lmodern} % ???
+%\usepackage{graphicx}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+%\usepackage{listings}
+
+\newcommand{\prom}[1]{\texttt{#1}}
+\newcommand{\obr}[3]{
+\begin{figure}[ht!]
+\centering
+\includegraphics{#1}
+\caption{#2}
+\label{#3}
+\end{figure}}
+
+\begin{document}
+
+%\abstract
+
+\subsection*{Implementace Edmondsova algoritmu \\ Matěj Kocián}
+
+Edmondsův algoritmus hledá maximální párování v obecném grafu. V souboru \texttt{edmonds.cpp} je k nalezení jeho funkční implementace v jazyce C++ pracující v čase $O(n^4)$, kde $n$ je počet vrcholů grafu. V tomto textu jsou popsány použité datové struktury. Důkazy jsou k nalezení v \cite{valla}.
+
+\subsubsection*{Algoritmus}
+
+
+
+
+
+
+
+
+
+
+\begin{thebibliography}{9}
+\bibitem{valla}
+Tomáš Valla, \emph{Skriptíčka z kombinatoriky} [online]. [cit. 15. 3. 2013] Dostupné z \url{http://kam.mff.cuni.cz/~valla/kg.pdf}.
+\end{thebibliography}
+
+
+
+\end{document}
+

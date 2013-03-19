@@ -211,7 +211,7 @@ bool edmonds(graf& G)
     //v nulté hladině jsou všechny volné vrcholy
     for (int i = 0; i < G.V.size(); i++) {
         if (G.V[i].volny()) {
-            fprintf(stderr,"volny: %d\n",i);
+/*            fprintf(stderr,"volny: %d\n",i); C*/
             volne.push_back(i);
             hladina[i] = 0;
             koren[i] = i;
@@ -228,7 +228,7 @@ bool edmonds(graf& G)
         //procházení do šířky
         deque<int> fronta;
         fronta.push_back(volne[vol_v]);
-        fprintf(stderr,"z vrcholu: %d\n",volne[vol_v]);
+/*        fprintf(stderr,"z vrcholu: %d\n",volne[vol_v]); C*/
 
         while (!fronta.empty()) {
             int proch_v = fronta[0];
@@ -250,13 +250,13 @@ bool edmonds(graf& G)
                         pulhrana_k_rodici[proch_w] = proch_hrana->druha;
                         fronta.push_back(proch_w);
 
-                        fprintf(stderr,"VETEV 1\n");
+/*                        fprintf(stderr,"VETEV 1\n"); C*/
                     } else { //navštívený vrchol
 
                         //pokud hrana vede mezi sudými hladinami různých stromů
                         if (koren[proch_w] != koren[proch_v] && even(hladina[proch_w]) && even(hladina[proch_v])) {
                             //našli jsme augmenting path
-                            fprintf(stderr,"našli jsme augmenting path\n");
+/*                            fprintf(stderr,"našli jsme augmenting path\n"); C*/
 
                             //zalternujeme ji
                             proch_hrana->parovaci = true;
@@ -272,13 +272,13 @@ bool edmonds(graf& G)
                                 f->druha->parovaci = !f->druha->parovaci;
                             }
 
-                            fprintf(stderr,"VETEV 2\n");
+/*                            fprintf(stderr,"VETEV 2\n"); C*/
                             //zvětšili jsme párování
                             return true;
 
                         } else if (koren[proch_w] == koren[proch_v] && even(hladina[proch_w]) && even(hladina[proch_v])) {
                             //našli jsme květ
-                            fprintf(stderr,"našli jsme květ\n");
+/*                            fprintf(stderr,"našli jsme květ\n"); C*/
 
                             //najdeme začátek stonku:
                             //změníme hladiny všech vrcholů na cestě od v ke kořeni na -2
@@ -336,7 +336,7 @@ bool edmonds(graf& G)
                             for (int i = 0; i < G.V.size(); i++) {
                                 if (nove_cislo[i] != 0) {
                                     nove_cislo[i] = pocet;
-                                    fprintf(stderr,"%d -> %d\n",i,nove_cislo[i]);
+/*                                    fprintf(stderr,"%d -> %d\n",i,nove_cislo[i]); C*/
                                     pocet++;
                                 }
                             }
@@ -415,7 +415,7 @@ bool edmonds(graf& G)
 
                             //pokud algoritmus spuštěný na G2 nenajde větší párování, je vstupní párování maximální
                             if (!edmonds(G2)) {
-                                fprintf(stderr,"VETEV 3\n");
+/*                                fprintf(stderr,"VETEV 3\n"); C*/
                                 return false;
                             } else { //algoritmus našel na G2 větší párování
                                 
@@ -436,7 +436,7 @@ bool edmonds(graf& G)
                                             //}
                                         }
                                     }
-                                    fprintf(stderr,"VETEV 4\n");
+/*                                    fprintf(stderr,"VETEV 4\n"); C*/
                                 } else { //květ není volný, musíme na něm upravit párování
 
                                     int hledany = -1; //vrchol v květu, do kterého vedou dvě spárované hrany
@@ -546,7 +546,7 @@ bool edmonds(graf& G)
                                     vypis(G);
                                 }
                                         
-                                fprintf(stderr,"VETEV 5\n");
+/*                                fprintf(stderr,"VETEV 5\n"); C*/
                                 return true;
                             }
                         }
@@ -566,9 +566,9 @@ int main()
     //G.nacti_graf();
 
     srand(time(NULL));
-    G.vygeneruj(400,90);
+    G.vygeneruj(2048,1);
     
-    vypis(G);
+    //vypis(G);
 
     //G.vypis_graf();
     //printf("\n");
