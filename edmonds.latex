@@ -12,6 +12,7 @@
 %\usepackage{listings}
 
 \newcommand{\prom}[1]{\texttt{#1}}
+\newcommand{\definice}[1]{\emph{#1}}
 \newcommand{\obr}[3]{
 \begin{figure}[ht!]
 \centering
@@ -26,9 +27,22 @@
 
 \subsection*{Implementace Edmondsova algoritmu \\ Matěj Kocián}
 
-Edmondsův algoritmus hledá maximální párování v obecném grafu. V souboru \texttt{edmonds.cpp} je k nalezení jeho funkční implementace v jazyce C++ pracující v čase $O(n^4)$, kde $n$ je počet vrcholů grafu. V tomto textu jsou popsány použité datové struktury. Důkazy jsou k nalezení v \cite{valla}.
+Edmondsův zahradní algoritmus hledá maximální párování v obecném grafu $G = (V,E)$. V souboru \texttt{edmonds.cpp} je k nalezení jeho funkční implementace (napsaná podle popisu v \cite{valla}) pracující v čase $O(n^2(n+m))$, kde $n$ je počet vrcholů a $m$ počet hran grafu $G$. V následujícím textu jsou popsány použité datové struktury.
 
 \subsubsection*{Algoritmus}
+
+Edmondsův zahradní algoritmus najde maximální párování v obecném grafu. Začne s libovolným párováním a v každém kroku jej zvětší alespoň o jedna tak, že najde \definice{volnou střídavou cestu} (cestu liché délky, jejíž koncové vrcholy nejsou spárované a pravidelně se na ní střídají párovací a nepárovací hrany) a párování na ní invertuje. Dá se dokázat (viz \cite{valla}), že párování v grafu je maximální, právě když v něm neexistuje volná střídavá cesta.
+
+
+Graf je reprezentován polem vrcholů, každý vrchol obsahuje pole odkazů na půlhrany. Půlhrana je pomocí pointerů spojena s odpovídající půlhranou u jiného vrcholu a se svým domovským vrcholem. Pro každou půlhranu si také pamatujeme, jestli je součástí párovací či nepárovací hrany.
+
+Edmondsův les stihneme vybudovat v čase $O(n+m)$ (často ho ovšem ani nevybudujeme celý). Volné vrcholy nalezneme projitím všech a zkontrolováním, jestli jsou všechny vycházející hrany nepárovací. Pro každý vrchol si pamatujeme, zda leží na sudé či liché hladině a kterou hranou se jde k jeho rodiči. Díky tomu můžeme ve chvíli, kdy narazíme na hranu mezi sudými hladinami různých stromů Edmondsova lesa a zjistíme tak, že graf obsahuje volnou střídavou cestu, vyšplhat v čase $O(n+m)$ do obou kořenů a po cestě invertovat párování.
+
+Pokud narazíme na hranu mezi sudými hladinami jednoho stromu, našli jsme \definice{květ} (lichou kružnici, na které se pravidelně střídají párovací a nepárovací hrany až na dvě nepárovací hrany vedle sebe; z vrcholu mezi nimi může vést \definice{stonek} -- střídavá cesta) a musíme jej zkontrahovat. To uděláme tak, že vytvoříme nový graf $G_2$, ve kterém bude tento květ zkontrahovaný.
+
+Nejdříve po hranách do rodičů vystoupáme z obou vrcholů spojených onou hranou až do začátku stonku a u všech vrcholů, které cestou potkáme, si poznamenáme, že patří do květu. Každému vrcholu z $G$ přiřadíme pozici \prom{nove\_cislo} odpovídajícího vrcholu v $G_2$; zkontrahovaný květ bude na pozici 0. Pak projdeme vrcholy $G$, vytvoříme odpovídající vrcholy v $G_2$ a přidáme hrany. Hranu vedoucí do květu přidáme jen tehdy, když výchozí vrchol není v květu a ještě z něj žádná hrana do květu nevede (to si pamatujeme v poli \prom{uz\_hrana}). Hranu vedoucí do vrcholu mimo květ přidáme jen tehdy, když je číslo výchozího vrcholu menší než číslo cílového. Hrany vedoucí z květu ignorujeme. Tímto způsobem žádnou hranu nepřidáme dvakrát. V každém případě vždy vytvoříme obě poloviny hrany naráz, abychom je mohli svázat pointery. Do jakého vrcholu uložit druhou půlhranu víme z pole \prom{nove\_cislo}. Pro každou novou hranu si také zapamatujeme odkaz na odpovídající hranu v $G$, abychom mohli změny v párování na $G_2$ snadno přenést do původního grafu. Celou konstrukci $G_2$ zvládneme v čase $O(n+m)$.
+
+
 
 
 

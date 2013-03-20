@@ -4,7 +4,6 @@
 #include <cstdlib>
 #include <iomanip>
 #include <ctime>
-
 #include <sstream>
 
 #define even(x) (((x) % 2) == 0)
