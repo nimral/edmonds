@@ -42,6 +42,8 @@ Pokud narazíme na hranu mezi sudými hladinami jednoho stromu, našli jsme \def
 
 Nejdříve po hranách do rodičů vystoupáme z obou vrcholů spojených onou hranou až do začátku stonku a u všech vrcholů, které cestou potkáme, si poznamenáme, že patří do květu. Každému vrcholu z $G$ přiřadíme pozici \prom{nove\_cislo} odpovídajícího vrcholu v $G_2$; zkontrahovaný květ bude na pozici 0. Pak projdeme vrcholy $G$, vytvoříme odpovídající vrcholy v $G_2$ a přidáme hrany. Hranu vedoucí do květu přidáme jen tehdy, když výchozí vrchol není v květu a ještě z něj žádná hrana do květu nevede (to si pamatujeme v poli \prom{uz\_hrana}). Hranu vedoucí do vrcholu mimo květ přidáme jen tehdy, když je číslo výchozího vrcholu menší než číslo cílového. Hrany vedoucí z květu ignorujeme. Tímto způsobem žádnou hranu nepřidáme dvakrát. V každém případě vždy vytvoříme obě poloviny hrany naráz, abychom je mohli svázat pointery. Do jakého vrcholu uložit druhou půlhranu víme z pole \prom{nove\_cislo}. Pro každou novou hranu si také zapamatujeme odkaz na odpovídající hranu v $G$, abychom mohli změny v párování na $G_2$ snadno přenést do původního grafu. Celou konstrukci $G_2$ zvládneme v čase $O(n+m)$.
 
+Následně rekurzivně zavoláme jeden krok Edmondsova algoritmu na $G_2$. Pokud se na něm podařilo párování vylepšit, upravíme $G$, jinak skončíme. Je-li květ v $G_2$ volný, jednoduše párování mimo květ okopírujeme pomocí odkazů na odpovídající hrany. Pokud do květu v $G_2$ vede párovací hrana $e$, musíme párování na květu v $G$ \uv{pootočit} tak, aby $e$ tvořila začátek stonku a do žádný vrchol tak nebyl spárovaný dvakrát.
+
 
 
 
