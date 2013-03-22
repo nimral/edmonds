@@ -35,9 +35,18 @@
 
 %\abstract
 
-\subsection*{Implementace Edmondsova algoritmu \\ Matěj Kocián}
+\title{Implementace Edmondsova algoritmu}
+\author{Matěj Kocián\footnote{\texttt{matej.kocian@gmail.com}}}
+\maketitle
 
 Edmondsův zahradní algoritmus hledá maximální párování v obecném grafu $G$. V souboru \texttt{edmonds.cpp} je k nalezení jeho funkční implementace (napsaná podle popisu ve Skriptíčkách z kombinatoriky \cite{valla}) pracující v čase $O(n^2(n+m))$, kde $n$ je počet vrcholů a $m$ počet hran grafu $G$. V následujícím textu jsou popsány zejména použité datové struktury.
+
+\subsubsection*{Použití}
+Program \prom{edmonds} přečte graf ze standardního vstupu v následujícím formátu a ve stejném formátu vypíše na standardní výstup graf s nalezeným maximálním párováním.
+
+Na prvním řádku jsou tři celá nezáporná čísla oddělená mezerami: $n$, $m$ a $p$, kde $n$ je počet vrcholů, $m$ počet hran a $p$ je 0 nebo 1. Je-li $p = 1$, je graf zadaný včetně nějakého párování. Následuje $m$ řádek, na každé z nich první dvě čísla $u,v \in \{0,\ldots,n-1\}$ značí vrcholy, mezi kterými vede daná hrana. Pokud je $p = 1$, je na řádce ještě třetí číslo: 1, pokud je hrana párovací, a 0 jinak.
+
+Na vizualizaci řešení je možno použít program \prom{graf-dot}. Ten výstup převede do jazyka dot, který slouží jako vstup pro nástroj \prom{graphviz}\footnote{\texttt{http://graphviz.org}}, jímž byly generovány například obrázky v tomto textu.
 
 \subsubsection*{Algoritmus}
 
@@ -65,13 +74,13 @@ Pokud narazíme na hranu mezi sudými hladinami jednoho stromu, našli jsme \def
 
 Nejdříve po hranách do rodičů vystoupáme z obou vrcholů spojených onou hranou až do začátku stonku a u všech vrcholů, které cestou potkáme, si poznamenáme, že patří do květu. Každému vrcholu z $G$ přiřadíme pozici \prom{nove\_cislo} odpovídajícího vrcholu v $G_2$; zkontrahovaný květ bude na pozici 0. Pak projdeme vrcholy $G$, vytvoříme odpovídající vrcholy v $G_2$ a přidáme hrany. Hranu vedoucí do květu přidáme jen tehdy, když výchozí vrchol není v květu a ještě z něj žádná hrana do květu nevede (to si pamatujeme v poli \prom{uz\_hrana}). Hranu vedoucí do vrcholu mimo květ přidáme jen tehdy, když je číslo výchozího vrcholu menší než číslo cílového. Hrany vedoucí z květu ignorujeme. Tímto způsobem žádnou hranu nepřidáme dvakrát. V každém případě vždy vytvoříme obě poloviny hrany naráz, abychom je mohli svázat pointery. Do jakého vrcholu uložit druhou půlhranu víme z pole \prom{nove\_cislo}. Pro každou novou hranu si také zapamatujeme odkaz na odpovídající hranu v $G$, abychom mohli změny v párování na $G_2$ snadno přenést do původního grafu. Celou konstrukci $G_2$ zvládneme v čase $O(n+m)$.
 
-Následně rekurzivně zavoláme jeden krok Edmondsova algoritmu na $G_2$. Pokud se na něm podařilo párování vylepšit, upravíme $G$, jinak skončíme. Je-li květ v $G_2$ volný, jednoduše párování mimo květ okopírujeme pomocí odkazů na odpovídající hrany. Pokud do květu v $G_2$ vede párovací hrana $e$, musíme párování na květu v $G$ \uv{pootočit} tak, aby $e$ tvořila začátek stonku a žádný vrchol tak nebyl spárovaný dvakrát (\definice{přesadíme} květ). To celé stihneme v čase $O(n+m)$, dohromady tedy na každé úrovni rekurze trávíme tento čas a potřebujeme tolik paměti.
+Následně rekurzivně zavoláme jeden krok Edmondsova algoritmu na $G_2$. Pokud se na něm podařilo párování vylepšit, upravíme $G$, jinak skončíme. Je-li květ v $G_2$ volný, jednoduše párování mimo květ okopírujeme pomocí odkazů na odpovídající hrany. Pokud do květu v $G_2$ vede párovací hrana $e$, musíme navíc párování na květu v $G$ \uv{pootočit} tak, aby $e$ tvořila začátek stonku a žádný vrchol tak nebyl spárovaný dvakrát (\definice{přesadíme} květ). To celé stihneme v čase $O(n+m)$, dohromady tedy na každé úrovni rekurze trávíme tento čas a potřebujeme tolik paměti.
 
-Hloubka rekurze nepřesáhne $n/2$, protože kontrahujeme kružnice a vždy tak ubydou alespoň dva vrcholy. Jeden krok algoritmu tedy trvá $O(n(n+m))$. Celkem se kroků provede nejvýše $n/2$, protože každý zvětší párování alespoň o jedna a párování nemůže obsahovat víc než $n/2$ hran. Maximální párování se tedy podaří nalézt v čase $O(n^2(n+m))$.
+Hloubka rekurze nepřesáhne $n/2$, protože kontrahujeme kružnice a vždy tak ubydou alespoň dva vrcholy. Jeden krok algoritmu tedy trvá $O(n(n+m))$. Celkem se kroků provede nejvýše $n/2$, protože každý zvětší párování alespoň o jedna a párování nemůže obsahovat víc než $n/2$ hran. Maximální párování se podaří nalézt v čase $O(n^2(n+m))$.
 
 
 \subsubsection*{Závěr}
-Naprogramovali jsme \emph{nějakou} konkrétní implementaci Edmondsova algoritmu; je pravděpodobné, že algoritmus jde napsat snáze a rychleji (s lepšími konstantami) při zachování časové složitosti $O(n^2(n+m))$. Navíc Tomáš Valla píše, že \uv{pokud nebudeme Edmondsův algoritmus používat v inkrementální podobě a přepíšeme ho rovnou jako algoritmus na nalezení maximálního párování z prázdného, odpadnou tím některé opakované operace a lze ho použitím chytrých datových struktur urychlit na čas $O(n^3)$} \cite{valla}. Nepochybně je zde tedy ještě prostor pro zlepšení.
+Naprogramovali jsme \emph{nějakou} konkrétní implementaci Edmondsova algoritmu; je pravděpodobné, že algoritmus jde napsat snáze a rychlejší (s lepšími konstantami) při zachování časové složitosti $O(n^2(n+m))$. Navíc Tomáš Valla píše, že \uv{pokud nebudeme Edmondsův algoritmus používat v inkrementální podobě a přepíšeme ho rovnou jako algoritmus na nalezení maximálního párování z prázdného, odpadnou tím některé opakované operace a lze ho použitím chytrých datových struktur urychlit na čas $O(n^3)$} \cite{valla}. Nepochybně je zde tedy ještě prostor pro zlepšení.
 
 
 

@@ -18,7 +18,6 @@ public:
     vector<pulhrana*> hrany;
     int cislo;
     bool volny();
-    bool dvakrat_sparovany();
     ~vrchol();
 };
 
@@ -60,7 +59,7 @@ public:
     void vypis_graf(FILE *out);
 };
 
-
+//načte graf ze standardního vstupu
 void graf::nacti_graf()
 {
     int n,m,s_parovanim;
@@ -95,6 +94,7 @@ void graf::nacti_graf()
     }
 }
 
+//vygeneruje náhodný graf s n vrcholy a h% pravděpodobností, že mezi dvěma vrcholy povede hrana
 void graf::vygeneruj(int n, int h)
 {
     for (int i = 0; i < n; i++) {
@@ -121,7 +121,7 @@ void graf::vygeneruj(int n, int h)
     }
 }
  
-
+//vypíše graf ve formátu stejném jako je vstupní
 void graf::vypis_graf(FILE *out = stdout)
 {
     int hran = 0;
@@ -142,6 +142,7 @@ void graf::vypis_graf(FILE *out = stdout)
     }
 }
 
+//vypíše jen párovací hrany
 void graf::vypis_parovani()
 {
     for (int v = 0; v < V.size(); v++) {
@@ -169,37 +170,9 @@ bool vrchol::volny()
     return volny;
 }
 
-bool vrchol::dvakrat_sparovany()
-{
-    int sparovani = 0;
-    for (vector<pulhrana*>::iterator it = hrany.begin(); it != hrany.end(); ++it) {
-        if ((*it)->parovaci) {
-            sparovani++;
-        }
-    }
-    return (sparovani > 1);
-}
-    
-void vypis(graf& G)
-{
-    static int poradi = 0;
-    stringstream ss;
-    ss.fill(0);
-    ss.width(2);
-    ss << setw(2) << setfill('0') << poradi << ".out";
-    string s = ss.str();
-    FILE * out = fopen(s.c_str(),"w");
-
-    G.vypis_graf(out);
-
-    fclose(out);
-    poradi++;
-}
-            
 //podařilo se na grafu G zvětšit párování?
 bool edmonds(graf& G)
 {
-    vypis(G);
 
     //konstruujeme Edmondsův les procházením do šířky
     int hladina[G.V.size()];
@@ -210,7 +183,6 @@ bool edmonds(graf& G)
     //v nulté hladině jsou všechny volné vrcholy
     for (int i = 0; i < G.V.size(); i++) {
         if (G.V[i].volny()) {
-/*            fprintf(stderr,"volny: %d\n",i); C*/
             volne.push_back(i);
             hladina[i] = 0;
             koren[i] = i;
@@ -227,7 +199,6 @@ bool edmonds(graf& G)
         //procházení do šířky
         deque<int> fronta;
         fronta.push_back(volne[vol_v]);
-/*        fprintf(stderr,"z vrcholu: %d\n",volne[vol_v]); C*/
 
         while (!fronta.empty()) {
             int proch_v = fronta[0];
@@ -249,13 +220,11 @@ bool edmonds(graf& G)
                         pulhrana_k_rodici[proch_w] = proch_hrana->druha;
                         fronta.push_back(proch_w);
 
-/*                        fprintf(stderr,"VETEV 1\n"); C*/
                     } else { //navštívený vrchol
 
                         //pokud hrana vede mezi sudými hladinami různých stromů
                         if (koren[proch_w] != koren[proch_v] && even(hladina[proch_w]) && even(hladina[proch_v])) {
                             //našli jsme augmenting path
-/*                            fprintf(stderr,"našli jsme augmenting path\n"); C*/
 
                             //zalternujeme ji
                             proch_hrana->parovaci = true;
@@ -271,13 +240,11 @@ bool edmonds(graf& G)
                                 f->druha->parovaci = !f->druha->parovaci;
                             }
 
-/*                            fprintf(stderr,"VETEV 2\n"); C*/
                             //zvětšili jsme párování
                             return true;
 
                         } else if (koren[proch_w] == koren[proch_v] && even(hladina[proch_w]) && even(hladina[proch_v])) {
                             //našli jsme květ
-/*                            fprintf(stderr,"našli jsme květ\n"); C*/
 
                             //najdeme začátek stonku:
                             //změníme hladiny všech vrcholů na cestě od v ke kořeni na -2
@@ -335,7 +302,6 @@ bool edmonds(graf& G)
                             for (int i = 0; i < G.V.size(); i++) {
                                 if (nove_cislo[i] != 0) {
                                     nove_cislo[i] = pocet;
-/*                                    fprintf(stderr,"%d -> %d\n",i,nove_cislo[i]); C*/
                                     pocet++;
                                 }
                             }
@@ -410,15 +376,12 @@ bool edmonds(graf& G)
                                 }
                             }
 
-                            vypis(G2);
 
                             //pokud algoritmus spuštěný na G2 nenajde větší párování, je vstupní párování maximální
                             if (!edmonds(G2)) {
-/*                                fprintf(stderr,"VETEV 3\n"); C*/
                                 return false;
                             } else { //algoritmus našel na G2 větší párování
                                 
-                                vypis(G2);
 
                                 //je-li květ volný, vrátíme vstupní párování na květu a mimo něj to z G2
                                 if (G2.V[0].volny()) {
@@ -435,7 +398,6 @@ bool edmonds(graf& G)
                                             //}
                                         }
                                     }
-/*                                    fprintf(stderr,"VETEV 4\n"); C*/
                                 } else { //květ není volný, musíme na něm upravit párování
 
                                     int hledany = -1; //vrchol v květu, do kterého vedou dvě spárované hrany
@@ -488,7 +450,6 @@ bool edmonds(graf& G)
 
                                     }
 
-                                    vypis(G);
 
                                     int vzd = 0; //počet hran na květu od proch_v do hledany
                                     int i;
@@ -542,10 +503,8 @@ bool edmonds(graf& G)
                                         proch_hrana->parovaci = proch_hrana->druha->parovaci = !even(vzd);
                                     }
                                     
-                                    vypis(G);
                                 }
                                         
-/*                                fprintf(stderr,"VETEV 5\n"); C*/
                                 return true;
                             }
                         }
@@ -563,14 +522,6 @@ int main()
 {
     graf G;
     G.nacti_graf();
-
-    //srand(time(NULL));
-    //G.vygeneruj(2048,1);
-    
-    //vypis(G);
-
-    //G.vypis_graf();
-    //printf("\n");
 
     while (edmonds(G))
         ;
