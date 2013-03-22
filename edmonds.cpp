@@ -562,10 +562,10 @@ bool edmonds(graf& G)
 int main()
 {
     graf G;
-    //G.nacti_graf();
+    G.nacti_graf();
 
-    srand(time(NULL));
-    G.vygeneruj(2048,1);
+    //srand(time(NULL));
+    //G.vygeneruj(2048,1);
     
     //vypis(G);
 

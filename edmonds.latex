@@ -5,7 +5,7 @@
 \usepackage[utf8]{inputenc} % pro unicode UTF-8
 \usepackage[T1]{fontenc} % vyhledávání funguje!
 \usepackage{lmodern} % ???
-%\usepackage{graphicx}
+\usepackage{graphicx}
 \usepackage{url}
 \usepackage{amsmath}
 \usepackage{amsfonts}
@@ -13,13 +13,23 @@
 
 \newcommand{\prom}[1]{\texttt{#1}}
 \newcommand{\definice}[1]{\emph{#1}}
-\newcommand{\obr}[3]{
-\begin{figure}[ht!]
-\centering
-\includegraphics{#1}
-\caption{#2}
-\label{#3}
-\end{figure}}
+
+\newcommand{\obrs}[4]{
+    \begin{figure}[h!]
+        \centering
+        \includegraphics[scale=#4]{#1}
+        \caption{#2}
+        \label{#3}
+    \end{figure}
+}
+
+\newcommand{\obr}[3]{\obrs{#1}{#2}{#3}{1}}
+\newcommand{\obrtady}[3]{
+    \begin{center}
+    \includegraphics[scale=#2]{#1}{#2}
+    \end{center}
+}
+
 
 \begin{document}
 
@@ -27,22 +37,41 @@
 
 \subsection*{Implementace Edmondsova algoritmu \\ Matěj Kocián}
 
-Edmondsův zahradní algoritmus hledá maximální párování v obecném grafu $G = (V,E)$. V souboru \texttt{edmonds.cpp} je k nalezení jeho funkční implementace (napsaná podle popisu v \cite{valla}) pracující v čase $O(n^2(n+m))$, kde $n$ je počet vrcholů a $m$ počet hran grafu $G$. V následujícím textu jsou popsány použité datové struktury.
+Edmondsův zahradní algoritmus hledá maximální párování v obecném grafu $G$. V souboru \texttt{edmonds.cpp} je k nalezení jeho funkční implementace (napsaná podle popisu ve Skriptíčkách z kombinatoriky \cite{valla}) pracující v čase $O(n^2(n+m))$, kde $n$ je počet vrcholů a $m$ počet hran grafu $G$. V následujícím textu jsou popsány zejména použité datové struktury.
 
 \subsubsection*{Algoritmus}
 
-Edmondsův zahradní algoritmus najde maximální párování v obecném grafu. Začne s libovolným párováním a v každém kroku jej zvětší alespoň o jedna tak, že najde \definice{volnou střídavou cestu} (cestu liché délky, jejíž koncové vrcholy nejsou spárované a pravidelně se na ní střídají párovací a nepárovací hrany) a párování na ní invertuje. Dá se dokázat (viz \cite{valla}), že párování v grafu je maximální, právě když v něm neexistuje volná střídavá cesta.
+Edmondsův zahradní algoritmus najde maximální párování v obecném grafu. Začne s libovolným párováním a v každém kroku jej zvětší alespoň o jedna tak, že najde \definice{volnou střídavou cestu} (cestu liché délky, jejíž koncové vrcholy nejsou spárované a pravidelně se na ní střídají párovací a nepárovací hrany) a párování na ní invertuje. Dá se dokázat (viz Skriptíčka \cite{valla}), že párování v grafu je maximální, právě když v něm neexistuje volná střídavá cesta.
 
 
 Graf je reprezentován polem vrcholů, každý vrchol obsahuje pole odkazů na půlhrany. Půlhrana je pomocí pointerů spojena s odpovídající půlhranou u jiného vrcholu a se svým domovským vrcholem. Pro každou půlhranu si také pamatujeme, jestli je součástí párovací či nepárovací hrany.
 
-Edmondsův les stihneme vybudovat v čase $O(n+m)$ (často ho ovšem ani nevybudujeme celý). Volné vrcholy nalezneme projitím všech a zkontrolováním, jestli jsou všechny vycházející hrany nepárovací. Pro každý vrchol si pamatujeme, zda leží na sudé či liché hladině a kterou hranou se jde k jeho rodiči. Díky tomu můžeme ve chvíli, kdy narazíme na hranu mezi sudými hladinami různých stromů Edmondsova lesa a zjistíme tak, že graf obsahuje volnou střídavou cestu, vyšplhat v čase $O(n+m)$ do obou kořenů a po cestě invertovat párování.
+V každém kroku algoritmu zkonstruujeme \definice{Edmondsův les} tak, že ze všech volných vrcholů postupně \emph{z jednoho po druhém} pustíme prohledávání do šířky. Z vrcholů na sudých hladinách ovšem půjdeme jen po nepárovacích hranách a naopak.
 
-Pokud narazíme na hranu mezi sudými hladinami jednoho stromu, našli jsme \definice{květ} (lichou kružnici, na které se pravidelně střídají párovací a nepárovací hrany až na dvě nepárovací hrany vedle sebe; z vrcholu mezi nimi může vést \definice{stonek} -- střídavá cesta) a musíme jej zkontrahovat. To uděláme tak, že vytvoříme nový graf $G_2$, ve kterém bude tento květ zkontrahovaný.
+\begin{figure}[h!]
+    \centering
+    \includegraphics[scale=0.4]{3x5.pdf}
+    \includegraphics[scale=0.4]{3x5-les.pdf}
+    \caption{Graf s očíslovanými vrcholy a jemu odpovídající Edmondsův les. Červené hrany jsou párovací, čárkované vedou mezi sudými hladinami různých stromů a jejich nalezení by ve skutečnosti konstrukci lesa ukončilo.}
+    \label{}
+\end{figure}
+
+
+Edmondsův les stihneme vybudovat v čase $O(n+m)$ (často ho ovšem ani nevybudujeme celý). Volné vrcholy nalezneme projitím všech a zkontrolováním, jestli jsou všechny vycházející hrany nepárovací. Pro každý vrchol si pamatujeme, zda leží na sudé či liché hladině a kterou hranou se jde k jeho rodiči. Díky tomu můžeme ve chvíli, kdy narazíme na hranu mezi sudými hladinami různých stromů Edmondsova lesa (a zjistíme tak, že graf obsahuje volnou střídavou cestu), vyšplhat v čase $O(n+m)$ do obou kořenů a po cestě invertovat párování.
+
+Pokud narazíme na hranu mezi sudými hladinami jednoho stromu, našli jsme \definice{květ} (lichou kružnici, na které se pravidelně střídají párovací a nepárovací hrany až na dvě nepárovací hrany vedle sebe; z vrcholu mezi nimi může vést \definice{stonek} -- střídavá cesta; viz obr. \ref{kvet}) a musíme jej zkontrahovat. To uděláme tak, že vytvoříme nový graf $G_2$, ve kterém bude tento květ zkontrahovaný.
+
+\obrs{maly-kvet.pdf}{Příklad květu (červené hrany jsou párovací)}{kvet}{0.5}
 
 Nejdříve po hranách do rodičů vystoupáme z obou vrcholů spojených onou hranou až do začátku stonku a u všech vrcholů, které cestou potkáme, si poznamenáme, že patří do květu. Každému vrcholu z $G$ přiřadíme pozici \prom{nove\_cislo} odpovídajícího vrcholu v $G_2$; zkontrahovaný květ bude na pozici 0. Pak projdeme vrcholy $G$, vytvoříme odpovídající vrcholy v $G_2$ a přidáme hrany. Hranu vedoucí do květu přidáme jen tehdy, když výchozí vrchol není v květu a ještě z něj žádná hrana do květu nevede (to si pamatujeme v poli \prom{uz\_hrana}). Hranu vedoucí do vrcholu mimo květ přidáme jen tehdy, když je číslo výchozího vrcholu menší než číslo cílového. Hrany vedoucí z květu ignorujeme. Tímto způsobem žádnou hranu nepřidáme dvakrát. V každém případě vždy vytvoříme obě poloviny hrany naráz, abychom je mohli svázat pointery. Do jakého vrcholu uložit druhou půlhranu víme z pole \prom{nove\_cislo}. Pro každou novou hranu si také zapamatujeme odkaz na odpovídající hranu v $G$, abychom mohli změny v párování na $G_2$ snadno přenést do původního grafu. Celou konstrukci $G_2$ zvládneme v čase $O(n+m)$.
 
-Následně rekurzivně zavoláme jeden krok Edmondsova algoritmu na $G_2$. Pokud se na něm podařilo párování vylepšit, upravíme $G$, jinak skončíme. Je-li květ v $G_2$ volný, jednoduše párování mimo květ okopírujeme pomocí odkazů na odpovídající hrany. Pokud do květu v $G_2$ vede párovací hrana $e$, musíme párování na květu v $G$ \uv{pootočit} tak, aby $e$ tvořila začátek stonku a do žádný vrchol tak nebyl spárovaný dvakrát.
+Následně rekurzivně zavoláme jeden krok Edmondsova algoritmu na $G_2$. Pokud se na něm podařilo párování vylepšit, upravíme $G$, jinak skončíme. Je-li květ v $G_2$ volný, jednoduše párování mimo květ okopírujeme pomocí odkazů na odpovídající hrany. Pokud do květu v $G_2$ vede párovací hrana $e$, musíme párování na květu v $G$ \uv{pootočit} tak, aby $e$ tvořila začátek stonku a žádný vrchol tak nebyl spárovaný dvakrát (\definice{přesadíme} květ). To celé stihneme v čase $O(n+m)$, dohromady tedy na každé úrovni rekurze trávíme tento čas a potřebujeme tolik paměti.
+
+Hloubka rekurze nepřesáhne $n/2$, protože kontrahujeme kružnice a vždy tak ubydou alespoň dva vrcholy. Jeden krok algoritmu tedy trvá $O(n(n+m))$. Celkem se kroků provede nejvýše $n/2$, protože každý zvětší párování alespoň o jedna a párování nemůže obsahovat víc než $n/2$ hran. Maximální párování se tedy podaří nalézt v čase $O(n^2(n+m))$.
+
+
+\subsubsection*{Závěr}
+Naprogramovali jsme \emph{nějakou} konkrétní implementaci Edmondsova algoritmu; je pravděpodobné, že algoritmus jde napsat snáze a rychleji (s lepšími konstantami) při zachování časové složitosti $O(n^2(n+m))$. Navíc Tomáš Valla píše, že \uv{pokud nebudeme Edmondsův algoritmus používat v inkrementální podobě a přepíšeme ho rovnou jako algoritmus na nalezení maximálního párování z prázdného, odpadnou tím některé opakované operace a lze ho použitím chytrých datových struktur urychlit na čas $O(n^3)$} \cite{valla}. Nepochybně je zde tedy ještě prostor pro zlepšení.
 
 
 
@@ -57,7 +86,7 @@ Následně rekurzivně zavoláme jeden krok Edmondsova algoritmu na $G_2$. Pokud
 
 \begin{thebibliography}{9}
 \bibitem{valla}
-Tomáš Valla, \emph{Skriptíčka z kombinatoriky} [online]. [cit. 15. 3. 2013] Dostupné z \url{http://kam.mff.cuni.cz/~valla/kg.pdf}.
+\textsc{Valla}, Tomáš a \textsc{Matoušek}, Jiří. \textit{Kombinatorika a grafy I} [online]. 2005 [cit. 15. 3. 2013]. Dostupné z \url{http://kam.mff.cuni.cz/~valla/kg.pdf}.
 \end{thebibliography}
 
 
